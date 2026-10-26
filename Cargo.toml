@@ -1,0 +1,124 @@
+[package]
+edition      = "2024"
+name         = "nano"
+rust-version = "1.88"
+version      = "0.1.0"
+
+[lib]
+bench = false
+test  = false
+
+[[bin]]
+bench = false
+name  = "nano"
+path  = "./src/bin/main.rs"
+test  = false
+
+[features]
+## Show a fixed test pattern (colour bars and 1-pixel lines) instead of the UI: checks the
+## panel's signals and timing without PSRAM, twine or bounce-buffer refills.
+panel-test = []
+## Alternate the pixel clock's data edge (`ShiftLow` / `ShiftHigh`) every 5 s, logging which one is
+## active: compare fine detail (small text) on the real UI.
+pclk-edge-test = []
+## Stress the memory bus in phases (flash reads, PSRAM copies) and log the scan-out's late
+## refills per phase: finds which traffic starves the display.
+bus-test = []
+
+[dependencies]
+esp-hal = { version = "~1.1.0", features = ["esp32s3", "log-04", "unstable"] }
+
+esp-rtos = { version = "0.3.0", features = [
+  "embassy",
+  "esp-alloc",
+  "esp-radio",
+  "esp32s3",
+  "log-04",
+] }
+
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3", "log-04"] }
+log                    = "0.4.27"
+
+# embassy-net 0.9 pulls smoltcp 0.13, which needs rustc 1.91 (the esp toolchain is 1.90):
+# stay on embassy-net 0.8 / smoltcp 0.12 until the toolchain can move.
+embassy-net = { version = "0.8.0", features = [
+  "dhcpv4",
+  "dns",
+  "log",
+  "medium-ethernet",
+  "tcp",
+  "udp",
+] }
+embedded-io = "0.7.1"
+embedded-io-async = "0.7.0"
+esp-alloc = "0.10.0"
+esp-backtrace = { version = "0.19.0", features = [
+  "esp32s3",
+  "panic-handler",
+  "println",
+] }
+esp-println = { version = "0.17.0", features = ["esp32s3", "log-04"] }
+# for more networking protocol support see https://crates.io/crates/edge-net
+embassy-executor = { version = "0.10.0", features = ["log"] }
+embassy-time = { version = "0.5.0", features = ["log"] }
+esp-radio = { version = "0.18.0", features = [
+  "esp-alloc",
+  "esp32s3",
+  "log-04",
+  "unstable",
+  "wifi",
+] }
+smoltcp = { version = "0.12.0", default-features = false, features = [
+  "log",
+  "medium-ethernet",
+  "multicast",
+  "proto-dhcpv4",
+  "proto-dns",
+  "proto-ipv4",
+  "socket-dns",
+  "socket-icmp",
+  "socket-raw",
+  "socket-tcp",
+  "socket-udp",
+] }
+
+critical-section = "1.2.0"
+static_cell      = "2.1.1"
+
+# Twine GUI (git, pinned). `svg` draws the vector airplane; `theme-lvgl` is the theme (dark mode
+# only, see `ui::config`); fonts are picked per size to keep
+# flash small. The 8048S043's GT911 touch controller uses the I2C driver.
+twine = { git = "https://github.com/mayur-mahajan/twine", rev = "ea0a18645541a50c6150ba1fac41663eff4cd2fc", default-features = false, features = [
+  "color-rgb565",
+  "drivers-gt911",
+  "embassy",
+  "log",
+  "montserrat-18-smooth",
+  "montserrat-20-smooth",
+  "montserrat-24-smooth",
+  "montserrat-28-smooth",
+  "montserrat-48-smooth",
+  "svg",
+  "theme-lvgl",
+] }
+embedded-hal = "1.0.0"
+embedded-storage = "0.3.1"
+esp-storage = { version = "=0.9.0", features = ["esp32s3"] }
+heapless = "0.8.0"
+libm = "0.2.11"
+serde = { version = "1.0.215", default-features = false, features = ["alloc", "derive"] }
+serde_json = { version = "1.0.132", default-features = false, features = ["alloc"] }
+embassy-futures = "0.1.2"
+
+
+# For fine tuning these settings, please refer to https://doc.rust-lang.org/cargo/reference/profiles.html
+[profile.dev]
+# The default debug profile is too slow and too big for resource-constrained devices.
+# Always build with some optimizations enabled.
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1     # LLVM can perform better optimizations using a single thread
+debug         = 2     # prefer slower builds but better debugging experience
+lto           = 'fat'
+opt-level     = 's'

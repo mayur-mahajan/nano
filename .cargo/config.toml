@@ -1,0 +1,21 @@
+[target.xtensa-esp32s3-none-elf]
+# Flash mode and frequency: see `espflash.toml`.
+runner = "espflash flash --monitor --chip esp32s3"
+
+[env]
+ESP_LOG="info"
+# The display's bounce-buffer copies (core 1, PSRAM -> SRAM) need the data cache ESP-IDF uses for
+# its RGB bounce-buffer mode: 64-byte lines (Espressif's LCD FAQ: required, else drift) and 64 KB,
+# so the next 32 KB chunk can be preloaded while the current one is sent.
+ESP_HAL_CONFIG_DATA_CACHE_LINE_SIZE="64B"
+ESP_HAL_CONFIG_DATA_CACHE_SIZE="64KB"
+
+[build]
+rustflags = [
+  "-C", "link-arg=-nostartfiles",
+]
+
+target = "xtensa-esp32s3-none-elf"
+
+[unstable]
+build-std = ["alloc", "core"]

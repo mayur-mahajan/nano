@@ -1,0 +1,8 @@
+# nano's flash layout (16 MB). Offsets of `settings` and `map` are 64 KiB aligned: the map is
+# memory-mapped (`src/memory/flash_map.rs`) and the settings sectors are erased one at a time.
+# Name,    Type, SubType,   Offset,   Size
+nvs,       data, nvs,       0x9000,   0x6000
+phy_init,  data, phy,       0xf000,   0x1000
+factory,   app,  factory,   0x10000,  0x3F0000
+settings,  data, undefined, 0x400000, 0x10000
+map,       data, undefined, 0x410000, 0x7F0000

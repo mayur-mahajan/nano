@@ -1,0 +1,20 @@
+# Read by both `espflash` and `cargo espflash`.
+#
+# Flash shares the memory bus with the PSRAM the display is refreshed from, so slow flash reads
+# starve the panel (measured with `--features bus-test`): it runs at 80 MHz in QIO.
+#
+# QIO the ESP-IDF way: the header stays DIO, since the ROM loads the bootloader in the header's
+# mode and does not set the flash's Quad Enable bit (a QIO header boot-loops with
+# `ets_loader.c 78`); the bootloader, built for QIO, sets the bit and switches the flash to
+# QIO for the app. See `bootloader/README.md`; without the `bootloader` line espflash uses its
+# bundled DIO bootloader.
+
+[idf]
+bootloader      = "bootloader/esp32s3-qio-80m.bin"
+# Adds the `settings` and `map` partitions (see the file; the map is flashed once, see README).
+partition_table = "partitions.csv"
+
+[flash]
+mode      = "dio"
+frequency = "80MHz"
+size      = "16MB"

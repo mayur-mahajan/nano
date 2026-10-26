@@ -1,0 +1,12 @@
+[package]
+name         = "mapgen"
+version      = "0.1.0"
+edition      = "2024"
+description  = "Builds nano's world map (assets/map/world.nmap) from Natural Earth and OurAirports data"
+publish      = false
+
+# A host tool, not part of the firmware build.
+[workspace]
+
+[dependencies]
+serde_json = "1.0.132"

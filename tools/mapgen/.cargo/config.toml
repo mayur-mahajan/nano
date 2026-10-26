@@ -1,0 +1,4 @@
+# A host tool inside the firmware project: undo the firmware's target settings.
+[build]
+target    = "x86_64-apple-darwin"
+rustflags = []
